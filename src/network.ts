@@ -29,7 +29,7 @@ const buildApiUrlWithParams = (
 
   const endDateString = getFormattedDate(endDate);
 
-  return `${weatherApiURL}?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode&start_date=${startDate}&end_date=${endDateString}`;
+  return `${weatherApiURL}?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m&start_date=${startDate}&end_date=${endDateString}&windspeed_unit=ms`;
 };
 
 export const fetchWeatherForUser = async (
@@ -43,7 +43,7 @@ export const fetchWeatherForUser = async (
   const res = await fetch(url);
 
   const {
-    hourly: { time, temperature_2m, weathercode },
+    hourly: { time, temperature_2m, weathercode, pressure_msl, windspeed_10m },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = (await res.json()) as unknown as any;
 
@@ -51,6 +51,8 @@ export const fetchWeatherForUser = async (
     time,
     temperature_2m,
     weathercode,
+    pressure_msl,
+    windspeed_10m,
   } as Forecast;
 
   console.log('Request from user for', id, days);

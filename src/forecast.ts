@@ -4,6 +4,8 @@ export type Forecast = {
   time: string[];
   temperature_2m: number[];
   weathercode: number[];
+  pressure_msl: number[];
+  windspeed_10m: number[];
 };
 
 const DAY_START = 7;
@@ -30,7 +32,51 @@ const getWeatherByCode = (codeWMO: number): string => {
 
 // For 24 hours
 const extendedForecast = (forecast: Forecast): string => {
-  return shortForecast(forecast);
+  let nightTmp = 0;
+  let dayTmp = 0;
+
+  let nightHoursNumber = 0;
+
+  forecast.temperature_2m.forEach((value, index) => {
+    if (index <= DAY_START || index >= DAY_END) {
+      nightTmp += value;
+      nightHoursNumber += 1;
+    } else {
+      dayTmp += value;
+    }
+  });
+
+  const dayHoursNumber = 24 - nightHoursNumber;
+
+  const avgNightTmp = (nightTmp / nightHoursNumber).toFixed(0);
+  const avgDayTmp = (dayTmp / dayHoursNumber).toFixed(0);
+
+  const date = new Date(forecast.time[0]);
+
+  const weatherNight = getWeatherByCode(forecast.weathercode[4]);
+  const weatherDay = getWeatherByCode(forecast.weathercode[15]);
+
+  const pressureNight = Math.round(forecast.pressure_msl[4]).toString();
+  const pressureDay = Math.round(forecast.pressure_msl[15]).toString();
+
+  const windNight = Math.round(forecast.windspeed_10m[4]).toString();
+  const windDay = Math.round(forecast.windspeed_10m[15]).toString();
+
+  const dateStr = date.getDate() + '.' + date.getMonth();
+
+  return `
+  🗓️${getUnderline(dateStr)}:
+  🌞 Day:
+    Weather: ${getStrong(weatherDay)}.
+    Temperature: 🌡️ ${getStrong(avgDayTmp)} C°.
+    Pressure: ${getStrong(pressureDay)} mb.
+    Wind: ${getStrong(windDay)} ms.
+
+  🌚 Night:
+    Weather: ${getStrong(weatherNight)}.
+    Temperature: 🌡️ ${getStrong(avgNightTmp)} C°
+    Pressure: ${getStrong(pressureNight)} mb.
+    Wind: ${getStrong(windNight)} ms.`;
 };
 
 // For 24 hours
@@ -86,6 +132,8 @@ const compositeForecast = (forecast: Forecast): string => {
       temperature_2m: chunkTemp,
       weathercode: chunkWeather,
       time: chunkTime,
+      windspeed_10m: [],
+      pressure_msl: [],
     });
     totalText += `
     `;
